@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>価格比較検索 - JANコードで最安値を探す</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>価格比較検索</h1>
+      <p class="subtitle">JANコードを入力して最安値を見つけよう</p>
+    </header>
+
+    <main>
+      <section class="search-section">
+        <form id="searchForm" class="search-form">
+          <div class="input-group">
+            <input
+              type="text"
+              id="janCode"
+              placeholder="JANコードを入力（例: 4901234567890）"
+              pattern="[0-9]{8,13}"
+              maxlength="13"
+              required
+            >
+            <button type="submit" id="searchBtn">
+              <span class="btn-text">検索</span>
+              <span class="btn-loading" style="display: none;">検索中...</span>
+            </button>
+          </div>
+          <p class="input-hint">8桁または13桁のJANコード（バーコード番号）を入力してください</p>
+        </form>
+      </section>
+
+      <section id="results" class="results-section" style="display: none;">
+        <div class="results-header">
+          <h2>検索結果</h2>
+          <p id="resultCount"></p>
+        </div>
+
+        <div id="demoNotice" class="demo-notice" style="display: none;">
+          <p>現在デモモードで動作しています。実際のAPIを使用するには、環境変数にAPIキーを設定してください。</p>
+        </div>
+
+        <div id="resultsList" class="results-list"></div>
+      </section>
+
+      <section id="error" class="error-section" style="display: none;">
+        <p id="errorMessage"></p>
+      </section>
+    </main>
+
+    <footer>
+      <p>JANコードは商品のバーコードに記載されている番号です</p>
+      <div class="api-status" id="apiStatus"></div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
