@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FMY - 競馬オッズ変動アラート{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/">FMY</a>
+            <span class="nav-subtitle">競馬オッズ変動アラート</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">ダッシュボード</a>
+            <a href="/settings" class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}">設定</a>
+            <span id="alert-badge" class="alert-badge" style="display:none;">0</span>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>FMY - 競馬オッズ変動アラートシステム</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

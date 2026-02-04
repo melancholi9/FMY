@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}{{ race.venue }}{{ race.race_number }}R {{ race.race_name }} - FMY{% endblock %}
+
+{% block content %}
+<div class="race-detail">
+    <div class="page-header">
+        <a href="/" class="back-link">&larr; ダッシュボードに戻る</a>
+        <h1>
+            <span class="venue-badge">{{ race.venue }}</span>
+            {{ race.race_number }}R {{ race.race_name }}
+        </h1>
+        <div class="race-meta">
+            {% if race.race_type %}<span>{{ race.race_type }}</span>{% endif %}
+            {% if race.distance %}<span>{{ race.distance }}m</span>{% endif %}
+            {% if race.post_time %}<span>発走: {{ race.post_time }}</span>{% endif %}
+        </div>
+    </div>
+
+    <!-- オッズ推移チャート -->
+    <section class="section">
+        <h2 class="section-title">オッズ推移</h2>
+        <div class="chart-container">
+            <canvas id="oddsChart"></canvas>
+        </div>
+    </section>
+
+    <!-- オッズテーブル -->
+    <section class="section">
+        <h2 class="section-title">現在のオッズ</h2>
+        <div class="table-responsive">
+            <table class="odds-table">
+                <thead>
+                    <tr>
+                        <th>人気</th>
+                        <th>馬番</th>
+                        <th>馬名</th>
+                        <th>単勝オッズ</th>
+                        <th>前回比</th>
+                        <th>取得回数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in entries_data|sort(attribute='current_odds') if data.current_odds %}
+                    <tr>
+                        <td class="text-center">
+                            <span class="popularity-badge pop-{{ loop.index if loop.index <= 3 else 'other' }}">
+                                {{ data.entry.popularity or loop.index }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="horse-number">{{ data.entry.horse_number }}</span>
+                        </td>
+                        <td>{{ data.entry.horse_name }}</td>
+                        <td class="text-right odds-value">{{ "%.1f"|format(data.current_odds) }}</td>
+                        <td class="text-right">
+                            {% if data.snapshots|length >= 2 %}
+                                {% set prev = data.snapshots[-2].odds_value %}
+                                {% set curr = data.current_odds %}
+                                {% set diff = curr - prev %}
+                                <span class="{% if diff < 0 %}odds-down{% elif diff > 0 %}odds-up{% endif %}">
+                                    {{ "%+.1f"|format(diff) }}
+                                </span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="text-center">{{ data.snapshots|length }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- このレースのアラート履歴 -->
+    <section class="section">
+        <h2 class="section-title">アラート履歴</h2>
+        {% if alerts %}
+        <div class="alert-list">
+            {% for alert in alerts %}
+            <div class="alert-card alert-{{ alert.alert_type }}">
+                <div class="alert-header">
+                    <span class="alert-type-badge">
+                        {% if alert.alert_type == 'percent_change' %}変動率
+                        {% elif alert.alert_type == 'absolute_change' %}急変
+                        {% elif alert.alert_type == 'consecutive_drop' %}連続下落
+                        {% endif %}
+                    </span>
+                    <span class="alert-time">{{ alert.created_at.strftime('%H:%M:%S') }}</span>
+                </div>
+                <div class="alert-body">
+                    <pre class="alert-message">{{ alert.message }}</pre>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>このレースのアラートはまだありません</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const raceId = {{ race.id }};
+
+// チャート用カラーパレット
+const COLORS = [
+    '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
+    '#1abc9c', '#e67e22', '#34495e', '#e91e63', '#00bcd4',
+    '#8bc34a', '#ff5722', '#607d8b', '#795548', '#cddc39',
+    '#ff9800', '#673ab7', '#03a9f4'
+];
+
+function buildChart(data) {
+    const ctx = document.getElementById('oddsChart').getContext('2d');
+
+    // 上位8頭のみ表示
+    const topEntries = data
+        .filter(d => d.current_odds !== null)
+        .sort((a, b) => a.current_odds - b.current_odds)
+        .slice(0, 8);
+
+    const datasets = topEntries.map((entry, i) => ({
+        label: `${entry.horse_number}番 ${entry.horse_name}`,
+        data: entry.odds_history.map(h => ({ x: h.time, y: h.odds })),
+        borderColor: COLORS[i % COLORS.length],
+        backgroundColor: COLORS[i % COLORS.length] + '20',
+        tension: 0.3,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        fill: false,
+    }));
+
+    // 全時刻ラベルを収集
+    const allTimes = [...new Set(
+        data.flatMap(d => d.odds_history.map(h => h.time))
+    )].sort();
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: allTimes,
+            datasets: datasets,
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { usePointStyle: true }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                y: {
+                    title: { display: true, text: 'オッズ' },
+                    beginAtZero: false,
+                },
+                x: {
+                    title: { display: true, text: '時刻' },
+                    ticks: { maxRotation: 45 }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false,
+            }
+        }
+    });
+}
+
+// データ取得してチャート描画
+fetch(`/api/race/${raceId}/odds`)
+    .then(r => r.json())
+    .then(data => buildChart(data));
+
+// 30秒ごとに自動更新
+setInterval(function() {
+    fetch(`/api/race/${raceId}/odds`)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('oddsChart').remove();
+            const container = document.querySelector('.chart-container');
+            const canvas = document.createElement('canvas');
+            canvas.id = 'oddsChart';
+            container.appendChild(canvas);
+            buildChart(data);
+        });
+}, 30000);
+</script>
+{% endblock %}

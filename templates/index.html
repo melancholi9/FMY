@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}ダッシュボード - FMY{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- アラート通知エリア -->
+    <section class="section">
+        <h2 class="section-title">最新アラート</h2>
+        <div id="alert-list" class="alert-list">
+            {% if alerts %}
+                {% for alert in alerts %}
+                <div class="alert-card alert-{{ alert.alert_type }}">
+                    <div class="alert-header">
+                        <span class="alert-type-badge">
+                            {% if alert.alert_type == 'percent_change' %}変動率
+                            {% elif alert.alert_type == 'absolute_change' %}急変
+                            {% elif alert.alert_type == 'consecutive_drop' %}連続下落
+                            {% endif %}
+                        </span>
+                        <span class="alert-time">{{ alert.created_at.strftime('%H:%M:%S') }}</span>
+                    </div>
+                    <div class="alert-body">
+                        <pre class="alert-message">{{ alert.message }}</pre>
+                    </div>
+                    <div class="alert-footer">
+                        <span class="odds-change {% if alert.change_absolute and alert.change_absolute < 0 %}odds-down{% else %}odds-up{% endif %}">
+                            {{ "%.1f"|format(alert.previous_odds) }} → {{ "%.1f"|format(alert.current_odds) }}
+                            ({% if alert.change_percent %}{{ "%+.1f"|format(alert.change_percent) }}%{% endif %})
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>アラートはまだありません</p>
+                    <p class="text-muted">オッズの監視が開始されると、変動があればここに表示されます</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- レース一覧 -->
+    <section class="section">
+        <h2 class="section-title">監視中のレース</h2>
+        <div class="race-grid">
+            {% if races %}
+                {% for race in races %}
+                <div class="race-card">
+                    <div class="race-header">
+                        <span class="venue-badge">{{ race.venue }}</span>
+                        <span class="race-number">{{ race.race_number }}R</span>
+                        {% if race.post_time %}
+                        <span class="post-time">{{ race.post_time }}</span>
+                        {% endif %}
+                    </div>
+                    <h3 class="race-name">
+                        <a href="/race/{{ race.id }}">{{ race.race_name }}</a>
+                    </h3>
+                    <div class="race-info">
+                        {% if race.race_type %}
+                        <span>{{ race.race_type }}</span>
+                        {% endif %}
+                        {% if race.distance %}
+                        <span>{{ race.distance }}m</span>
+                        {% endif %}
+                    </div>
+                    <div class="race-actions">
+                        <a href="/race/{{ race.id }}" class="btn btn-primary btn-sm">詳細を見る</a>
+                        <button class="btn btn-outline btn-sm" onclick="toggleRace({{ race.id }})">
+                            監視停止
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>監視中のレースはありません</p>
+                    <p class="text-muted">デモモードで起動している場合、少し待つとデモレースが登録されます</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 10秒ごとにアラートを自動更新
+setInterval(function() {
+    fetch('/api/alerts?limit=20')
+        .then(r => r.json())
+        .then(data => updateAlertList(data));
+}, 10000);
+
+function updateAlertList(alerts) {
+    const container = document.getElementById('alert-list');
+    if (!alerts.length) return;
+
+    let html = '';
+    alerts.forEach(a => {
+        const typeLabel = {
+            'percent_change': '変動率',
+            'absolute_change': '急変',
+            'consecutive_drop': '連続下落'
+        }[a.alert_type] || a.alert_type;
+
+        const changeClass = a.change_absolute < 0 ? 'odds-down' : 'odds-up';
+
+        html += `
+        <div class="alert-card alert-${a.alert_type}">
+            <div class="alert-header">
+                <span class="alert-type-badge">${typeLabel}</span>
+                <span class="alert-time">${a.created_at.split(' ')[1]}</span>
+            </div>
+            <div class="alert-body">
+                <pre class="alert-message">${a.message}</pre>
+            </div>
+            <div class="alert-footer">
+                <span class="odds-change ${changeClass}">
+                    ${a.previous_odds.toFixed(1)} → ${a.current_odds.toFixed(1)}
+                    (${a.change_percent ? a.change_percent.toFixed(1) + '%' : ''})
+                </span>
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function toggleRace(raceId) {
+    fetch(`/api/race/${raceId}/toggle`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message);
+            location.reload();
+        });
+}
+</script>
+{% endblock %}

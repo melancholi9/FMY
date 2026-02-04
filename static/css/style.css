@@ -1,0 +1,672 @@
+/* =============================================================================
+   FMY - 競馬オッズ変動アラート スタイルシート
+   ============================================================================= */
+
+:root {
+    --primary: #1a73e8;
+    --primary-dark: #1557b0;
+    --danger: #dc3545;
+    --warning: #f39c12;
+    --success: #28a745;
+    --odds-down: #dc3545;
+    --odds-up: #28a745;
+    --bg: #f5f6fa;
+    --bg-card: #ffffff;
+    --text: #2d3436;
+    --text-muted: #6c757d;
+    --border: #dee2e6;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --radius: 8px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+        "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* ナビバー */
+.navbar {
+    background: var(--primary);
+    color: white;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-brand a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.nav-subtitle {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    margin-left: 12px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.alert-badge {
+    background: var(--danger);
+    color: white;
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 22px;
+    text-align: center;
+}
+
+/* コンテナ */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* セクション */
+.section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary);
+    color: var(--text);
+}
+
+/* ボタン */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.btn-outline:hover {
+    background: var(--bg);
+}
+
+.btn-sm {
+    padding: 4px 12px;
+    font-size: 0.8rem;
+}
+
+/* レースグリッド */
+.race-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.race-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
+
+.race-card:hover {
+    transform: translateY(-2px);
+}
+
+.race-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.venue-badge {
+    background: var(--primary);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.race-number {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.post-time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-left: auto;
+}
+
+.race-name a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.race-name a:hover {
+    color: var(--primary);
+}
+
+.race-info {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 8px 0;
+    display: flex;
+    gap: 12px;
+}
+
+.race-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* アラートリスト */
+.alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.alert-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--border);
+}
+
+.alert-card.alert-percent_change {
+    border-left-color: var(--warning);
+}
+
+.alert-card.alert-absolute_change {
+    border-left-color: var(--danger);
+}
+
+.alert-card.alert-consecutive_drop {
+    border-left-color: #9b59b6;
+}
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.alert-type-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg);
+}
+
+.alert-time {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.alert-message {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    font-family: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.alert-footer {
+    margin-top: 8px;
+}
+
+.odds-change {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.odds-down {
+    color: var(--odds-down);
+}
+
+.odds-up {
+    color: var(--odds-up);
+}
+
+/* オッズテーブル */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.odds-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.odds-table th {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+}
+
+.odds-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.odds-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.horse-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--text);
+    color: white;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.popularity-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.pop-1 {
+    background: #ffd700;
+    color: #333;
+}
+
+.pop-2 {
+    background: #c0c0c0;
+    color: #333;
+}
+
+.pop-3 {
+    background: #cd7f32;
+    color: white;
+}
+
+.pop-other {
+    background: #eee;
+    color: #666;
+}
+
+.odds-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* チャート */
+.chart-container {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    height: 400px;
+}
+
+/* 設定ページ */
+.form {
+    background: var(--bg-card);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: block;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ルール一覧 */
+.rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rule-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.rule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.rule-header h3 {
+    font-size: 1rem;
+}
+
+.rule-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+}
+
+.rule-detail {
+    font-size: 0.85rem;
+}
+
+.rule-detail .label {
+    color: var(--text-muted);
+}
+
+.rule-detail .value {
+    font-weight: 600;
+}
+
+.rule-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+/* トグルスイッチ */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #ccc;
+    border-radius: 26px;
+    transition: 0.3s;
+}
+
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--primary);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(22px);
+}
+
+/* 情報ボックス */
+.info-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.info-box h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+.info-box ol {
+    padding-left: 20px;
+    margin-bottom: 12px;
+}
+
+.info-box li {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.info-box a {
+    color: var(--primary);
+}
+
+.info-box code {
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+/* 空状態 */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.empty-state p:first-child {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+/* ページヘッダー */
+.page-header {
+    margin-bottom: 24px;
+}
+
+.back-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.race-meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+/* フッター */
+.footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 40px;
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .race-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .rule-details {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .nav-subtitle {
+        display: none;
+    }
+
+    .chart-container {
+        height: 300px;
+    }
+}

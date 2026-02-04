@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}アラート設定 - FMY{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <h1>アラート設定</h1>
+
+    <!-- 新規ルール作成フォーム -->
+    <section class="section">
+        <h2 class="section-title">新しいアラートルールを作成</h2>
+        <form id="rule-form" class="form">
+            <div class="form-group">
+                <label for="rule-name">ルール名</label>
+                <input type="text" id="rule-name" placeholder="例: 人気馬急落アラート" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="threshold-percent">変動率の閾値 (%)</label>
+                    <input type="number" id="threshold-percent" value="20" min="1" max="100" step="1">
+                    <span class="form-hint">この%以上変動したらアラート</span>
+                </div>
+                <div class="form-group">
+                    <label for="threshold-absolute">変動量の閾値 (pt)</label>
+                    <input type="number" id="threshold-absolute" value="5" min="0.1" max="100" step="0.1">
+                    <span class="form-hint">このポイント以上変動したらアラート</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="direction">監視方向</label>
+                    <select id="direction">
+                        <option value="both">両方向(上昇・下落)</option>
+                        <option value="down">下落のみ</option>
+                        <option value="up">上昇のみ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="consecutive-drops">連続下落検知回数</label>
+                    <input type="number" id="consecutive-drops" value="3" min="2" max="10">
+                    <span class="form-hint">N回連続で下がったらアラート</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="notify-method">通知方法</label>
+                    <select id="notify-method">
+                        <option value="both">LINE + Web</option>
+                        <option value="line">LINEのみ</option>
+                        <option value="web">Webのみ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="target-race">対象レース (任意)</label>
+                    <select id="target-race">
+                        <option value="">全レース</option>
+                        {% for race in races %}
+                        <option value="{{ race.id }}">{{ race.venue }}{{ race.race_number }}R {{ race.race_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">ルールを作成</button>
+        </form>
+    </section>
+
+    <!-- 既存ルール一覧 -->
+    <section class="section">
+        <h2 class="section-title">設定済みルール</h2>
+        <div id="rules-list" class="rules-list">
+            {% for rule in rules %}
+            <div class="rule-card" data-rule-id="{{ rule.id }}">
+                <div class="rule-header">
+                    <h3>{{ rule.name }}</h3>
+                    <label class="toggle-switch">
+                        <input type="checkbox" {% if rule.is_enabled %}checked{% endif %}
+                               onchange="toggleRule({{ rule.id }}, this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="rule-details">
+                    <div class="rule-detail">
+                        <span class="label">変動率閾値:</span>
+                        <span class="value">{{ "%.1f"|format(rule.change_threshold_percent) }}%</span>
+                    </div>
+                    <div class="rule-detail">
+                        <span class="label">変動量閾値:</span>
+                        <span class="value">{{ "%.1f"|format(rule.change_threshold_absolute) }}pt</span>
+                    </div>
+                    <div class="rule-detail">
+                        <span class="label">方向:</span>
+                        <span class="value">
+                            {% if rule.direction == 'both' %}両方向
+                            {% elif rule.direction == 'down' %}下落のみ
+                            {% else %}上昇のみ{% endif %}
+                        </span>
+                    </div>
+                    <div class="rule-detail">
+                        <span class="label">連続下落:</span>
+                        <span class="value">{{ rule.consecutive_drop_count }}回</span>
+                    </div>
+                    <div class="rule-detail">
+                        <span class="label">通知:</span>
+                        <span class="value">
+                            {% if rule.notify_method == 'both' %}LINE + Web
+                            {% elif rule.notify_method == 'line' %}LINE
+                            {% else %}Web{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="rule-actions">
+                    <button class="btn btn-danger btn-sm" onclick="deleteRule({{ rule.id }})">削除</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- LINE Notify設定 -->
+    <section class="section">
+        <h2 class="section-title">LINE Notify 設定</h2>
+        <div class="info-box">
+            <h3>LINE Notify の設定方法</h3>
+            <ol>
+                <li><a href="https://notify-bot.line.me/" target="_blank" rel="noopener">LINE Notify</a> にアクセスしてログイン</li>
+                <li>マイページからアクセストークンを発行</li>
+                <li>トークンを <code>.env</code> ファイルの <code>LINE_NOTIFY_TOKEN</code> に設定</li>
+                <li>アプリを再起動</li>
+            </ol>
+            <p class="text-muted">
+                LINE Notifyトークンが未設定の場合、Web上のアラートのみ表示されます。
+            </p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('rule-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const data = {
+        name: document.getElementById('rule-name').value,
+        change_threshold_percent: parseFloat(document.getElementById('threshold-percent').value),
+        change_threshold_absolute: parseFloat(document.getElementById('threshold-absolute').value),
+        direction: document.getElementById('direction').value,
+        consecutive_drop_count: parseInt(document.getElementById('consecutive-drops').value),
+        notify_method: document.getElementById('notify-method').value,
+        target_race_id: document.getElementById('target-race').value || null,
+    };
+
+    fetch('/api/rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    })
+    .then(r => r.json())
+    .then(result => {
+        alert(result.message || 'ルールを作成しました');
+        location.reload();
+    })
+    .catch(err => alert('エラーが発生しました: ' + err));
+});
+
+function toggleRule(ruleId, enabled) {
+    fetch(`/api/rules/${ruleId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_enabled: enabled }),
+    })
+    .then(r => r.json())
+    .then(result => console.log(result.message));
+}
+
+function deleteRule(ruleId) {
+    if (!confirm('このルールを削除しますか?')) return;
+
+    fetch(`/api/rules/${ruleId}`, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(result => {
+            alert(result.message);
+            location.reload();
+        });
+}
+</script>
+{% endblock %}
