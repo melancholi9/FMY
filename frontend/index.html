@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FMY CRM</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">FMY CRM</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">▦</span> ダッシュボード
+        </a>
+        <a href="#" class="nav-item" data-page="customers">
+          <span class="nav-icon">👥</span> 顧客管理
+        </a>
+        <a href="#" class="nav-item" data-page="deals">
+          <span class="nav-icon">💼</span> 案件管理
+        </a>
+        <a href="#" class="nav-item" data-page="activities">
+          <span class="nav-icon">📋</span> 活動履歴
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <h1 class="page-title" id="pageTitle">ダッシュボード</h1>
+      </header>
+
+      <!-- Dashboard Page -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">アクティブ顧客</div>
+            <div class="stat-value" id="stat-customers">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">進行中案件</div>
+            <div class="stat-value" id="stat-deals">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">案件合計金額</div>
+            <div class="stat-value" id="stat-amount">-</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3 class="card-title">案件ステージ</h3>
+            <div id="stage-chart"></div>
+          </div>
+          <div class="card">
+            <h3 class="card-title">最近の活動</h3>
+            <ul class="activity-list" id="recent-activities"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customers Page -->
+      <div class="page" id="page-customers">
+        <div class="page-actions">
+          <div class="search-box">
+            <input type="text" id="customerSearch" placeholder="名前・会社・メールで検索..." class="input">
+          </div>
+          <button class="btn btn-primary" onclick="openModal('customerModal')">+ 顧客追加</button>
+        </div>
+        <div class="card">
+          <table class="table" id="customersTable">
+            <thead>
+              <tr>
+                <th>名前</th><th>会社</th><th>メール</th><th>電話</th><th>ステータス</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="customersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Deals Page -->
+      <div class="page" id="page-deals">
+        <div class="page-actions">
+          <h2 class="section-title">案件一覧</h2>
+          <button class="btn btn-primary" onclick="openModal('dealModal')">+ 案件追加</button>
+        </div>
+        <div class="kanban" id="kanbanBoard"></div>
+      </div>
+
+      <!-- Activities Page -->
+      <div class="page" id="page-activities">
+        <div class="page-actions">
+          <h2 class="section-title">活動履歴</h2>
+          <button class="btn btn-primary" onclick="openModal('activityModal')">+ 活動記録</button>
+        </div>
+        <div class="card">
+          <ul class="activity-list full" id="activitiesList"></ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Customer Modal -->
+  <div class="modal-overlay" id="customerModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="customerModalTitle">顧客追加</h3>
+        <button class="modal-close" onclick="closeModal('customerModal')">✕</button>
+      </div>
+      <form id="customerForm">
+        <input type="hidden" id="customerId">
+        <div class="form-group">
+          <label>名前 <span class="required">*</span></label>
+          <input type="text" id="customerName" class="input" required>
+        </div>
+        <div class="form-group">
+          <label>会社名</label>
+          <input type="text" id="customerCompany" class="input">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>メール</label>
+            <input type="email" id="customerEmail" class="input">
+          </div>
+          <div class="form-group">
+            <label>電話</label>
+            <input type="text" id="customerPhone" class="input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ステータス</label>
+          <select id="customerStatus" class="input">
+            <option value="active">アクティブ</option>
+            <option value="inactive">非アクティブ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>メモ</label>
+          <textarea id="customerNotes" class="input" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('customerModal')">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Deal Modal -->
+  <div class="modal-overlay" id="dealModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="dealModalTitle">案件追加</h3>
+        <button class="modal-close" onclick="closeModal('dealModal')">✕</button>
+      </div>
+      <form id="dealForm">
+        <input type="hidden" id="dealId">
+        <div class="form-group">
+          <label>顧客 <span class="required">*</span></label>
+          <select id="dealCustomer" class="input" required></select>
+        </div>
+        <div class="form-group">
+          <label>案件タイトル <span class="required">*</span></label>
+          <input type="text" id="dealTitle" class="input" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>金額 (円)</label>
+            <input type="number" id="dealAmount" class="input" min="0">
+          </div>
+          <div class="form-group">
+            <label>ステージ</label>
+            <select id="dealStage" class="input">
+              <option value="prospect">見込み</option>
+              <option value="proposal">提案中</option>
+              <option value="negotiation">交渉中</option>
+              <option value="closed_won">受注</option>
+              <option value="closed_lost">失注</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>成約予定日</label>
+          <input type="date" id="dealCloseDate" class="input">
+        </div>
+        <div class="form-group">
+          <label>メモ</label>
+          <textarea id="dealNotes" class="input" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('dealModal')">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Activity Modal -->
+  <div class="modal-overlay" id="activityModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>活動記録</h3>
+        <button class="modal-close" onclick="closeModal('activityModal')">✕</button>
+      </div>
+      <form id="activityForm">
+        <div class="form-group">
+          <label>種別 <span class="required">*</span></label>
+          <select id="activityType" class="input" required>
+            <option value="call">📞 電話</option>
+            <option value="email">✉️ メール</option>
+            <option value="meeting">🤝 打合せ</option>
+            <option value="note">📝 メモ</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>タイトル <span class="required">*</span></label>
+          <input type="text" id="activityTitle" class="input" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>顧客</label>
+            <select id="activityCustomer" class="input">
+              <option value="">-- 選択 --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>日時</label>
+            <input type="datetime-local" id="activityDate" class="input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>詳細</label>
+          <textarea id="activityDesc" class="input" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" onclick="closeModal('activityModal')">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Customer Detail Modal -->
+  <div class="modal-overlay" id="customerDetailModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3 id="detailName">顧客詳細</h3>
+        <button class="modal-close" onclick="closeModal('customerDetailModal')">✕</button>
+      </div>
+      <div id="customerDetailContent"></div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
